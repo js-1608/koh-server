@@ -1830,7 +1830,7 @@
       "rmIds": [
         "RM-20260726-0003"
       ],
-      "currentStage": "dispatch",
+      "currentStage": "completed",
       "sorting": {
         "rawWeightKg": 98,
         "sortedWeightKg": 93.1,
@@ -1873,7 +1873,7 @@
         "outputId": "OP-20261017-80",
         "skuName": "Tomato Pack (2kg)",
         "packWeightGm": 2000,
-        "channel": "B2B",
+        "channel": "B2C (Retail / D2C)",
         "totalPacksProduced": 8,
         "totalFinishedKg": 5.5,
         "packagingCost": 0,
@@ -1883,16 +1883,22 @@
         "bestBefore": "2028-10-17T00:00:00.000Z"
       },
       "dispatch": {
-        "destination": "Finished Goods Bay",
-        "qualitySignOff": false,
+        "destination": "D2C Central Fulfillment Center (Shiprocket Hub)",
+        "qualitySignOff": true,
         "dispatchedPacks": 0,
-        "status": "pending_qc"
+        "status": "delivered",
+        "channel": "B2C (Retail / D2C)",
+        "vehicleNo": "TS 09 UB 4492",
+        "qcInspector": "Tejasri Ventrapati (Food Technologist)",
+        "dispatched": true,
+        "notes": "",
+        "dispatchDate": "2026-10-23T18:06:18.751Z"
       },
       "totalRawKg": 98,
       "totalFinishedKg": 5.5,
       "remainingKg": 0,
       "totalBatchCost": 3430,
-      "status": "active",
+      "status": "completed",
       "createdAt": "2026-07-24T06:00:00.000Z"
     },
     {
@@ -2201,7 +2207,7 @@
       "rmIds": [
         "RM-20260726-0008"
       ],
-      "currentStage": "packing",
+      "currentStage": "dispatch",
       "sorting": {
         "rawWeightKg": 98,
         "sortedWeightKg": 93.1,
@@ -2242,14 +2248,17 @@
         "powderedAt": "2026-10-17T16:26:59.952Z"
       },
       "packing": {
-        "outputId": "",
-        "skuName": "",
-        "packWeightGm": 2000,
-        "channel": "B2B",
-        "totalPacksProduced": 0,
-        "totalFinishedKg": 6.76,
+        "outputId": "OP-20261023-89",
+        "skuName": "Tomato & Rice Blend (100g)",
+        "packWeightGm": 100000,
+        "channel": "Pending Stage 6 Dispatch",
+        "totalPacksProduced": 430,
+        "totalFinishedKg": 43,
         "packagingCost": 0,
-        "lotNumber": "LOT-2026"
+        "lotNumber": "LOT-2610-94",
+        "packedAt": "2026-10-23T18:05:27.712Z",
+        "packedBy": "Packing Crew A",
+        "bestBefore": "2028-10-23T00:00:00.000Z"
       },
       "dispatch": {
         "destination": "Finished Goods Bay",
@@ -2259,7 +2268,7 @@
       },
       "totalRawKg": 98,
       "totalFinishedKg": 6,
-      "remainingKg": 6,
+      "remainingKg": 0,
       "totalBatchCost": 3430,
       "status": "active",
       "createdAt": "2026-07-24T06:00:00.000Z"
@@ -2417,7 +2426,7 @@
       "rmIds": [
         "RM-20260727-0003"
       ],
-      "currentStage": "powdering",
+      "currentStage": "dispatch",
       "sorting": {
         "rawWeightKg": 170,
         "sortedWeightKg": 161.5,
@@ -2446,25 +2455,29 @@
         "notes": "Consistent moisture reduction down to safe shelf-stable 4.5%."
       },
       "powdering": {
-        "isPowdered": false,
+        "isPowdered": true,
         "claimedForPowdering": true,
         "preSievedWeightKg": 11.88,
-        "powderedWeightKg": 0,
+        "powderedWeightKg": 9,
         "meshSize": "80 Mesh Standard",
-        "lossWeightKg": 0,
+        "lossWeightKg": 2.88,
         "operator": "Praveen Kumar (Milling Tech)",
         "notes": "",
-        "sievingStartedAt": "2026-10-17T16:26:39.396Z"
+        "sievingStartedAt": "2026-10-17T16:26:39.396Z",
+        "powderedAt": "2026-10-23T18:02:58.670Z"
       },
       "packing": {
-        "outputId": "",
-        "skuName": "",
-        "packWeightGm": 2000,
-        "channel": "B2B",
-        "totalPacksProduced": 0,
-        "totalFinishedKg": 11.88,
+        "outputId": "OP-20261023-89",
+        "skuName": "Tomato & Rice Blend (100g)",
+        "packWeightGm": 100000,
+        "channel": "Pending Stage 6 Dispatch",
+        "totalPacksProduced": 430,
+        "totalFinishedKg": 9,
         "packagingCost": 0,
-        "lotNumber": "LOT-2026"
+        "lotNumber": "LOT-2610-94",
+        "packedAt": "2026-10-23T18:05:27.712Z",
+        "packedBy": "Packing Crew A",
+        "bestBefore": "2028-10-23T00:00:00.000Z"
       },
       "dispatch": {
         "destination": "Finished Goods Bay",
@@ -2473,8 +2486,8 @@
         "status": "pending_qc"
       },
       "totalRawKg": 170,
-      "totalFinishedKg": 11.88,
-      "remainingKg": 11.88,
+      "totalFinishedKg": 9,
+      "remainingKg": 0,
       "totalBatchCost": 5950,
       "status": "active",
       "createdAt": "2026-07-24T06:00:00.000Z"
@@ -2486,7 +2499,7 @@
       "rmIds": [
         "RM-20260727-0004"
       ],
-      "currentStage": "powdering",
+      "currentStage": "completed",
       "sorting": {
         "rawWeightKg": 180,
         "sortedWeightKg": 171,
@@ -2515,36 +2528,46 @@
         "notes": "Consistent moisture reduction down to safe shelf-stable 4.5%."
       },
       "powdering": {
-        "isPowdered": false,
+        "isPowdered": true,
         "claimedForPowdering": false,
         "preSievedWeightKg": 12.5,
-        "powderedWeightKg": 0,
+        "powderedWeightKg": 10,
         "meshSize": "80 Mesh Standard",
-        "lossWeightKg": 0,
+        "lossWeightKg": 2.5,
         "operator": "Praveen Kumar (Milling Tech)",
-        "notes": ""
+        "notes": "",
+        "powderedAt": "2026-10-23T18:03:10.744Z"
       },
       "packing": {
-        "outputId": "",
-        "skuName": "",
-        "packWeightGm": 2000,
-        "channel": "B2B",
-        "totalPacksProduced": 0,
-        "totalFinishedKg": 12.5,
+        "outputId": "OP-20261023-89",
+        "skuName": "Tomato & Rice Blend (100g)",
+        "packWeightGm": 100000,
+        "channel": "B2C (Retail / D2C)",
+        "totalPacksProduced": 430,
+        "totalFinishedKg": 19,
         "packagingCost": 0,
-        "lotNumber": "LOT-2026"
+        "lotNumber": "LOT-2610-94",
+        "packedAt": "2026-10-23T18:05:27.712Z",
+        "packedBy": "Packing Crew A",
+        "bestBefore": "2028-10-23T00:00:00.000Z"
       },
       "dispatch": {
-        "destination": "Finished Goods Bay",
-        "qualitySignOff": false,
+        "destination": "D2C Central Fulfillment Center (Shiprocket Hub)",
+        "qualitySignOff": true,
         "dispatchedPacks": 0,
-        "status": "pending_qc"
+        "status": "delivered",
+        "channel": "B2C (Retail / D2C)",
+        "vehicleNo": "TS 09 UB 4492",
+        "qcInspector": "Tejasri Ventrapati (Food Technologist)",
+        "dispatched": true,
+        "notes": "",
+        "dispatchDate": "2026-10-23T18:05:54.964Z"
       },
       "totalRawKg": 180,
-      "totalFinishedKg": 12.5,
-      "remainingKg": 12.5,
+      "totalFinishedKg": 10,
+      "remainingKg": 0,
       "totalBatchCost": 6300,
-      "status": "active",
+      "status": "completed",
       "createdAt": "2026-07-24T06:00:00.000Z"
     },
     {
@@ -2696,7 +2719,7 @@
       "rmIds": [
         "RM-20260925-0001"
       ],
-      "currentStage": "powdering",
+      "currentStage": "dispatch",
       "sorting": {
         "rawWeightKg": 25,
         "sortedWeightKg": 23.75,
@@ -2725,25 +2748,29 @@
         "notes": "Consistent moisture reduction down to safe shelf-stable 4.5%."
       },
       "powdering": {
-        "isPowdered": false,
+        "isPowdered": true,
         "claimedForPowdering": true,
         "preSievedWeightKg": 19.26,
-        "powderedWeightKg": 0,
+        "powderedWeightKg": 18,
         "meshSize": "80 Mesh Standard",
-        "lossWeightKg": 0,
+        "lossWeightKg": 1.26,
         "sievingStartedAt": "2026-09-26T22:32:00.000Z",
         "operator": "Praveen Kumar (Milling Tech)",
-        "notes": ""
+        "notes": "",
+        "powderedAt": "2026-10-23T18:03:18.608Z"
       },
       "packing": {
-        "outputId": "",
-        "skuName": "",
-        "packWeightGm": 2000,
-        "channel": "B2B",
-        "totalPacksProduced": 0,
-        "totalFinishedKg": 19.26,
+        "outputId": "OP-20261023-89",
+        "skuName": "Tomato & Rice Blend (100g)",
+        "packWeightGm": 100000,
+        "channel": "Pending Stage 6 Dispatch",
+        "totalPacksProduced": 430,
+        "totalFinishedKg": 37,
         "packagingCost": 0,
-        "lotNumber": "LOT-2026"
+        "lotNumber": "LOT-2610-94",
+        "packedAt": "2026-10-23T18:05:27.712Z",
+        "packedBy": "Packing Crew A",
+        "bestBefore": "2028-10-23T00:00:00.000Z"
       },
       "dispatch": {
         "destination": "Finished Goods Bay",
@@ -2752,8 +2779,8 @@
         "status": "pending_qc"
       },
       "totalRawKg": 25,
-      "totalFinishedKg": 19.26,
-      "remainingKg": 19.26,
+      "totalFinishedKg": 18,
+      "remainingKg": 0,
       "totalBatchCost": 875,
       "status": "active",
       "createdAt": "2026-07-24T06:00:00.000Z"
@@ -3755,6 +3782,56 @@
   ],
   "activityLogs": [
     {
+      "_id": "log_1792778778751",
+      "module": "Production",
+      "action": "stage_change",
+      "title": "Batch Stage Updated: BC-20260727-0003",
+      "description": "Batch BC-20260727-0003 moved to stage [completed].",
+      "entityId": "BC-20260727-0003",
+      "userName": "Factory Supervisor",
+      "timestamp": "2026-10-23T18:06:18.751Z"
+    },
+    {
+      "_id": "log_1792778754964",
+      "module": "Production",
+      "action": "stage_change",
+      "title": "Batch Stage Updated: BC-20260728-0004",
+      "description": "Batch BC-20260728-0004 moved to stage [completed].",
+      "entityId": "BC-20260728-0004",
+      "userName": "Factory Supervisor",
+      "timestamp": "2026-10-23T18:05:54.964Z"
+    },
+    {
+      "_id": "log_1792778727712",
+      "module": "Production",
+      "action": "package_created",
+      "title": "Output Generated: OP-20261023-89",
+      "description": "Packed 430 packs of Tomato & Rice Blend (100g) (100g) using 43 kg produce.",
+      "entityId": "OP-20261023-89",
+      "userName": "Packing Crew A",
+      "timestamp": "2026-10-23T18:05:27.712Z"
+    },
+    {
+      "_id": "log_1792778669549",
+      "module": "Production",
+      "action": "stage_change",
+      "title": "Batch Stage Updated: BC-20261013-01",
+      "description": "Batch BC-20261013-01 moved to stage [packing].",
+      "entityId": "BC-20261013-01",
+      "userName": "Factory Supervisor",
+      "timestamp": "2026-10-23T18:04:29.549Z"
+    },
+    {
+      "_id": "log_1792778649898",
+      "module": "Production",
+      "action": "stage_change",
+      "title": "Batch Stage Updated: BC-20261013-01",
+      "description": "Batch BC-20261013-01 moved to stage [packing].",
+      "entityId": "BC-20261013-01",
+      "userName": "Factory Supervisor",
+      "timestamp": "2026-10-23T18:04:09.898Z"
+    },
+    {
       "_id": "log_1792257998218",
       "module": "Production",
       "action": "stage_change",
@@ -4233,6 +4310,78 @@
       "hoursWorked": null,
       "status": "present",
       "createdAt": "2026-10-13T21:30:38.843Z"
+    },
+    {
+      "_id": "att_1792778995985_53p7p",
+      "workerId": "wkr_1",
+      "workerName": "Raju Goud",
+      "date": "2026-10-23",
+      "shift": "Morning",
+      "checkIn": "2026-10-23T18:09:55.985Z",
+      "checkOut": null,
+      "hoursWorked": null,
+      "status": "present",
+      "createdAt": "2026-10-23T18:09:55.985Z"
+    },
+    {
+      "_id": "att_1792778995985_cxz0p",
+      "workerId": "wkr_2",
+      "workerName": "Sunitha Bai",
+      "date": "2026-10-23",
+      "shift": "Morning",
+      "checkIn": "2026-10-23T18:09:55.985Z",
+      "checkOut": null,
+      "hoursWorked": null,
+      "status": "present",
+      "createdAt": "2026-10-23T18:09:55.985Z"
+    },
+    {
+      "_id": "att_1792778995985_c99og",
+      "workerId": "wkr_3",
+      "workerName": "Praveen Kumar",
+      "date": "2026-10-23",
+      "shift": "Morning",
+      "checkIn": "2026-10-23T18:09:55.985Z",
+      "checkOut": null,
+      "hoursWorked": null,
+      "status": "present",
+      "createdAt": "2026-10-23T18:09:55.985Z"
+    },
+    {
+      "_id": "att_1792778995985_de6rh",
+      "workerId": "wkr_4",
+      "workerName": "Kavitha Reddy",
+      "date": "2026-10-23",
+      "shift": "Morning",
+      "checkIn": "2026-10-23T18:09:55.985Z",
+      "checkOut": null,
+      "hoursWorked": null,
+      "status": "present",
+      "createdAt": "2026-10-23T18:09:55.985Z"
+    },
+    {
+      "_id": "att_1792778995985_u5lem",
+      "workerId": "wkr_5",
+      "workerName": "Mahesh Varma",
+      "date": "2026-10-23",
+      "shift": "Morning",
+      "checkIn": "2026-10-23T18:09:55.985Z",
+      "checkOut": null,
+      "hoursWorked": null,
+      "status": "present",
+      "createdAt": "2026-10-23T18:09:55.985Z"
+    },
+    {
+      "_id": "att_1792778995985_og45x",
+      "workerId": "wkr_6",
+      "workerName": "Srinivas Rao",
+      "date": "2026-10-23",
+      "shift": "Morning",
+      "checkIn": "2026-10-23T18:09:55.985Z",
+      "checkOut": null,
+      "hoursWorked": null,
+      "status": "present",
+      "createdAt": "2026-10-23T18:09:55.985Z"
     }
   ],
   "utilityStock": [
@@ -6033,6 +6182,70 @@
   ],
   "packages": [
     {
+      "_id": "pkg_1792778727712",
+      "outputId": "OP-20261023-89",
+      "productId": "OP-20261023-89",
+      "skuId": "sku_1792778727712",
+      "skuName": "Tomato & Rice Blend (100g)",
+      "skuSize": "100g",
+      "skuSizeKg": 100,
+      "channel": "B2C (Retail / D2C)",
+      "totalPacksProduced": 430,
+      "totalFinishedKg": 43,
+      "weightReturnedKg": 0,
+      "lotNumber": "LOT-2610-94",
+      "expiryDate": "2028-10-23T00:00:00.000Z",
+      "packedAt": "2026-10-23T18:05:27.712Z",
+      "packedBy": "Packing Crew A",
+      "sourceBatches": [
+        {
+          "batchId": "btc_BC_20260728_0003",
+          "batchCode": "BC-20260728-0003",
+          "produce": "Tomato",
+          "quantityUsedKg": 9,
+          "isPowdered": true,
+          "remainingKg": 0
+        },
+        {
+          "batchId": "btc_BC_20260728_0004",
+          "batchCode": "BC-20260728-0004",
+          "produce": "Tomato",
+          "quantityUsedKg": 10,
+          "isPowdered": true,
+          "remainingKg": 0
+        },
+        {
+          "batchId": "btc_BC_20260926_0001",
+          "batchCode": "BC-20260926-0001",
+          "produce": "Rice",
+          "quantityUsedKg": 18,
+          "isPowdered": true,
+          "remainingKg": 0
+        },
+        {
+          "batchId": "btc_BC_20260727_0008",
+          "batchCode": "BC-20260727-0008",
+          "produce": "Tomato",
+          "quantityUsedKg": 6,
+          "isPowdered": true,
+          "remainingKg": 0
+        }
+      ],
+      "dispatch": {
+        "destination": "D2C Central Fulfillment Center (Shiprocket Hub)",
+        "vehicleNo": "TS 09 UB 4492",
+        "dispatchedBy": "Srinivas Rao (Warehouse Incharge)",
+        "qcInspector": "Tejasri Ventrapati (Food Technologist)",
+        "qcInspectionDate": "2026-10-23T18:05:27.712Z",
+        "dispatchDate": "2026-10-23T18:05:54.964Z",
+        "status": "delivered",
+        "gatePassNo": "GP-20261023-011",
+        "invoiceNo": "INV-KOH-20261023-011"
+      },
+      "notes": "Multi-powder blend: BC-20260728-0003 (9kg), BC-20260728-0004 (10kg), BC-20260926-0001 (18kg), BC-20260727-0008 (6kg)",
+      "createdAt": "2026-10-23T18:05:27.712Z"
+    },
+    {
       "_id": "pkg_1792254552947",
       "outputId": "OP-20261017-86",
       "productId": "OP-20261017-86",
@@ -6267,12 +6480,12 @@
         }
       ],
       "dispatch": {
-        "destination": "Direct Customer Parcel Dispatch - Telangana",
+        "destination": "D2C Central Fulfillment Center (Shiprocket Hub)",
         "vehicleNo": "TS 09 UB 4492",
         "dispatchedBy": "Srinivas Rao (Warehouse Incharge)",
         "qcInspector": "Tejasri Ventrapati (Food Technologist)",
         "qcInspectionDate": "2026-10-17T15:51:07.453Z",
-        "dispatchDate": "2026-10-17T17:03:13.779Z",
+        "dispatchDate": "2026-10-23T18:06:18.751Z",
         "status": "delivered",
         "gatePassNo": "GP-20261017-006",
         "invoiceNo": "INV-KOH-20261017-006"
