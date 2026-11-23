@@ -188,6 +188,14 @@ export const generateCombinedBatchCode = (batchCodes: string[], targetDate?: Dat
     }
   });
 
+  // Sort suffixes naturally (e.g. 25 before 26, 01 before 02)
+  suffixes.sort((a, b) => {
+    const numA = parseInt(a, 10);
+    const numB = parseInt(b, 10);
+    if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+    return a.localeCompare(b);
+  });
+
   if (!baseDateStr) {
     const d = targetDate || new Date();
     baseDateStr = d.toISOString().slice(0, 10).replace(/-/g, '');
@@ -268,12 +276,12 @@ export const createBatch = async (req: Request, res: Response) => {
 
     const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
     const countToday = memoryStore.batches.length + 1;
-    const batchCode = `BC-${todayStr}-${String(countToday).padStart(2, '0')}`;
+    const batchCode = (req.body.batchCode || '').trim() || `BC-${todayStr}-${String(countToday).padStart(2, '0')}`;
 
     // Sum weights from linked RM receipts
-    let totalRawKg = 0;
+    let totalRawKg = Number(req.body.totalRawKg) || 0;
     let firstRec: any = null;
-    const selectedRmIds = Array.isArray(rmIds) ? rmIds : [rmIds];
+    const selectedRmIds = Array.isArray(rmIds) ? rmIds : (rmIds ? [rmIds] : []);
     selectedRmIds.forEach(rmId => {
       const rec = memoryStore.receipts.find(r => r.rmId === rmId || r._id === rmId);
       if (rec) {
@@ -284,47 +292,47 @@ export const createBatch = async (req: Request, res: Response) => {
       }
     });
 
-    const farmerId = firstRec?.farmerId || req.body.farmerId || 'FMR-001';
-    const farmerName = firstRec?.farmerName || req.body.farmerName || 'Ramesh Kumar';
-    const receiptDate = firstRec?.receiptDate || new Date();
+    const farmerId = req.body.farmerId || firstRec?.farmerId || 'FMR-001';
+    const farmerName = req.body.farmerName || firstRec?.farmerName || 'Ramesh Kumar';
+    const receiptDate = req.body.receiptDate ? new Date(req.body.receiptDate) : (firstRec?.receiptDate || new Date());
     const weekInfo = getWeekNumber(receiptDate);
 
     const newBatch = {
-      _id: `btc_${Date.now()}`,
+      _id: `btc_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
       batchCode,
-      produce: produce || (selectedRmIds.length ? (firstRec?.produce || 'Amla') : 'General Produce'),
+      produce: produce || (selectedRmIds.length ? (firstRec?.produce || 'Amla') : (req.body.produce || 'Amla')),
       farmerId,
       farmerName,
-      receiptWeek: weekInfo.week,
-      receiptWeekYear: weekInfo.year,
-      receiptWeekLabel: weekInfo.label,
+      receiptWeek: req.body.receiptWeek || weekInfo.week,
+      receiptWeekYear: req.body.receiptWeekYear || weekInfo.year,
+      receiptWeekLabel: req.body.receiptWeekLabel || weekInfo.label,
       rmIds: selectedRmIds,
-      currentStage: 'sorting' as const,
+      currentStage: (req.body.currentStage || 'sorting') as any,
       sorting: {
         rawWeightKg: totalRawKg,
-        sortedWeightKg: totalRawKg,
-        rejectionWeightKg: 0,
-        rejectionRatePercent: 0,
-        notes: notes || ''
+        sortedWeightKg: req.body.sorting?.sortedWeightKg || totalRawKg,
+        rejectionWeightKg: req.body.sorting?.rejectionWeightKg || 0,
+        rejectionRatePercent: req.body.sorting?.rejectionRatePercent || 0,
+        notes: notes || req.body.sorting?.notes || ''
       },
       dehydration: {
-        dryerId: 'Dryer A1',
-        shift: 'Morning (6am-2pm)' as const,
-        tempC: 58,
-        fanSpeed: 'Level 4 (High)',
-        preProcessSteps: ['Washing', 'Slicing 4mm'],
-        preDryWeightKg: totalRawKg,
-        postDryWeightKg: 0,
-        yieldPercent: 0,
-        labourCost: 0,
-        utilityCost: 0
+        dryerId: req.body.dehydration?.dryerId || 'Dryer A1',
+        shift: req.body.dehydration?.shift || ('Morning (6am-2pm)' as const),
+        tempC: req.body.dehydration?.tempC || 58,
+        fanSpeed: req.body.dehydration?.fanSpeed || 'Level 4 (High)',
+        preProcessSteps: req.body.dehydration?.preProcessSteps || ['Washing', 'Slicing 4mm'],
+        preDryWeightKg: req.body.dehydration?.preDryWeightKg || totalRawKg,
+        postDryWeightKg: req.body.dehydration?.postDryWeightKg || 0,
+        yieldPercent: req.body.dehydration?.yieldPercent || 0,
+        labourCost: req.body.dehydration?.labourCost || 0,
+        utilityCost: req.body.dehydration?.utilityCost || 0
       },
       powdering: {
-        isPowdered: false,
-        preSievedWeightKg: 0,
-        powderedWeightKg: 0,
-        meshSize: '80 Mesh',
-        lossWeightKg: 0
+        isPowdered: req.body.powdering?.isPowdered || false,
+        preSievedWeightKg: req.body.powdering?.preSievedWeightKg || (req.body.dehydration?.postDryWeightKg || 0),
+        powderedWeightKg: req.body.powdering?.powderedWeightKg || 0,
+        meshSize: req.body.powdering?.meshSize || '80 Mesh',
+        lossWeightKg: req.body.powdering?.lossWeightKg || 0
       },
       packing: {
         outputId: '',
