@@ -80,6 +80,16 @@ export interface IStoreBatch {
   _id: string;
   batchCode: string;
   produce: string;
+  farmerId?: string;
+  farmerName?: string;
+  receiptWeek?: number;
+  receiptWeekYear?: number;
+  receiptWeekLabel?: string;
+  isCombined?: boolean;
+  parentBatchCodes?: string[];
+  parentBatchIds?: string[];
+  isCombinedInto?: string;
+  combinedAt?: Date;
   rmIds: string[];
   currentStage: 'receiving' | 'sorting' | 'dehydration' | 'powdering' | 'packing' | 'dispatch' | 'completed';
   sorting: {

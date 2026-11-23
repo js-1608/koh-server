@@ -149,6 +149,97 @@ export const updateReceipt = async (req: Request, res: Response) => {
   }
 };
 
+export const getWeekNumber = (d: Date | string): { year: number; week: number; label: string } => {
+  const date = new Date(d);
+  if (isNaN(date.getTime())) {
+    const now = new Date();
+    return { year: now.getFullYear(), week: 1, label: `Week 1, ${now.getFullYear()}` };
+  }
+  const target = new Date(date.valueOf());
+  const dayNr = (date.getDay() + 6) % 7;
+  target.setDate(target.getDate() - dayNr + 3);
+  const firstThursday = target.valueOf();
+  target.setMonth(0, 1);
+  if (target.getDay() !== 4) {
+    target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+  }
+  const weekNumber = 1 + Math.ceil((firstThursday - target.valueOf()) / 604800000);
+  const year = new Date(firstThursday).getFullYear();
+  return { year, week: weekNumber, label: `Week ${weekNumber}, ${year}` };
+};
+
+export const generateCombinedBatchCode = (batchCodes: string[], targetDate?: Date): string => {
+  const suffixes: string[] = [];
+  let baseDateStr = '';
+
+  batchCodes.forEach(code => {
+    const match = code.match(/^BC-(\d{8})-?(.*)$/i);
+    if (match) {
+      if (!baseDateStr) baseDateStr = match[1];
+      const suffix = match[2].replace(/[()]/g, '');
+      if (suffix) suffixes.push(suffix);
+    } else {
+      const parts = code.split('-');
+      if (parts.length > 1) {
+        suffixes.push(parts[parts.length - 1].replace(/[()]/g, ''));
+      } else {
+        suffixes.push(code);
+      }
+    }
+  });
+
+  if (!baseDateStr) {
+    const d = targetDate || new Date();
+    baseDateStr = d.toISOString().slice(0, 10).replace(/-/g, '');
+  }
+
+  return `BC-${baseDateStr}-(${suffixes.join('/')})`;
+};
+
+export const enrichBatchWithFarmerAndWeek = (b: any) => {
+  let farmerId = b.farmerId || '';
+  let farmerName = b.farmerName || '';
+  let receiptDate = b.receiptDate || b.createdAt;
+
+  if (!farmerName && b.rmIds && b.rmIds.length > 0) {
+    for (const rmId of b.rmIds) {
+      const rec = memoryStore.receipts.find(r => r.rmId === rmId || r._id === rmId);
+      if (rec) {
+        farmerId = rec.farmerId || '';
+        farmerName = rec.farmerName || '';
+        receiptDate = rec.receiptDate || receiptDate;
+        break;
+      }
+    }
+  }
+
+  if (!farmerName) {
+    const rec = memoryStore.receipts.find(r => r.batchCode === b.batchCode);
+    if (rec) {
+      farmerId = rec.farmerId || '';
+      farmerName = rec.farmerName || '';
+      receiptDate = rec.receiptDate || receiptDate;
+    }
+  }
+
+  if (!farmerName) {
+    farmerName = 'Ramesh Kumar';
+    farmerId = 'FMR-001';
+  }
+
+  const weekInfo = getWeekNumber(receiptDate);
+
+  return {
+    ...b,
+    farmerId,
+    farmerName,
+    receiptDate,
+    weekNumber: b.receiptWeek || weekInfo.week,
+    weekYear: b.receiptWeekYear || weekInfo.year,
+    weekLabel: b.receiptWeekLabel || weekInfo.label
+  };
+};
+
 export const getBatches = async (req: Request, res: Response) => {
   try {
     const { stage, produce, status } = req.query;
@@ -164,7 +255,8 @@ export const getBatches = async (req: Request, res: Response) => {
       list = list.filter(b => b.status === status);
     }
 
-    return res.json(list);
+    const enrichedList = list.map(b => enrichBatchWithFarmerAndWeek(b));
+    return res.json(enrichedList);
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
   }
@@ -180,20 +272,32 @@ export const createBatch = async (req: Request, res: Response) => {
 
     // Sum weights from linked RM receipts
     let totalRawKg = 0;
+    let firstRec: any = null;
     const selectedRmIds = Array.isArray(rmIds) ? rmIds : [rmIds];
     selectedRmIds.forEach(rmId => {
       const rec = memoryStore.receipts.find(r => r.rmId === rmId || r._id === rmId);
       if (rec) {
+        if (!firstRec) firstRec = rec;
         totalRawKg += rec.initialWeightKg;
         rec.status = 'in_batch';
         rec.batchCode = batchCode;
       }
     });
 
+    const farmerId = firstRec?.farmerId || req.body.farmerId || 'FMR-001';
+    const farmerName = firstRec?.farmerName || req.body.farmerName || 'Ramesh Kumar';
+    const receiptDate = firstRec?.receiptDate || new Date();
+    const weekInfo = getWeekNumber(receiptDate);
+
     const newBatch = {
       _id: `btc_${Date.now()}`,
       batchCode,
-      produce: produce || (selectedRmIds.length ? 'Amla' : 'General Produce'),
+      produce: produce || (selectedRmIds.length ? (firstRec?.produce || 'Amla') : 'General Produce'),
+      farmerId,
+      farmerName,
+      receiptWeek: weekInfo.week,
+      receiptWeekYear: weekInfo.year,
+      receiptWeekLabel: weekInfo.label,
       rmIds: selectedRmIds,
       currentStage: 'sorting' as const,
       sorting: {
@@ -929,6 +1033,258 @@ export const finalizePowderingBatches = async (req: Request, res: Response) => {
 
     saveStore();
     return res.json({ success: true, updatedCount: targets.length, batches: targets });
+  } catch (error: any) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+// Validate whether batches can be combined in powdering stage
+export const validateCombineBatches = async (req: Request, res: Response) => {
+  try {
+    const { batchIds } = req.body;
+    if (!Array.isArray(batchIds) || batchIds.length < 2) {
+      return res.json({
+        canCombine: false,
+        reasons: ['Please select at least 2 batches to combine.']
+      });
+    }
+
+    const targets = memoryStore.batches.filter(b => batchIds.includes(b._id) || batchIds.includes(b.batchCode));
+    if (targets.length < 2) {
+      return res.json({
+        canCombine: false,
+        reasons: [`Only ${targets.length} valid batches found. At least 2 batches are required.`]
+      });
+    }
+
+    const enrichedTargets = targets.map(b => enrichBatchWithFarmerAndWeek(b));
+    const reasons: string[] = [];
+
+    // 1. Same Produce Type
+    const produceTypes = Array.from(new Set(enrichedTargets.map(b => (b.produce || '').trim().toLowerCase())));
+    if (produceTypes.length > 1) {
+      const names = Array.from(new Set(enrichedTargets.map(b => b.produce)));
+      reasons.push(`Produce type mismatch: Batches contain different produce (${names.join(', ')}). Must be the same type.`);
+    }
+
+    // 2. Same Farmer
+    const farmerKeys = Array.from(new Set(enrichedTargets.map(b => (b.farmerId || b.farmerName || '').trim().toLowerCase())));
+    if (farmerKeys.length > 1) {
+      const fNames = Array.from(new Set(enrichedTargets.map(b => b.farmerName)));
+      reasons.push(`Farmer mismatch: Batches are from different farmers (${fNames.join(', ')}). Must be from the same farmer.`);
+    }
+
+    // 3. Same Week
+    const weekKeys = Array.from(new Set(enrichedTargets.map(b => `${b.weekYear}-W${b.weekNumber}`)));
+    if (weekKeys.length > 1) {
+      const wLabels = Array.from(new Set(enrichedTargets.map(b => b.weekLabel || `Week ${b.weekNumber}`)));
+      reasons.push(`Harvest week mismatch: Batches are from different weeks (${wLabels.join(', ')}). Must be from the same week.`);
+    }
+
+    // 4. Stage Check: not already finished/dispatched
+    const alreadyDone = targets.filter(b => b.powdering?.isPowdered || b.currentStage === 'completed' || b.currentStage === 'dispatch');
+    if (alreadyDone.length > 0) {
+      reasons.push(`One or more batches have already completed powdering: ${alreadyDone.map(b => b.batchCode).join(', ')}.`);
+    }
+
+    const parentBatchCodes = targets.map(b => b.batchCode);
+    const newBatchCode = generateCombinedBatchCode(parentBatchCodes, targets[0]?.createdAt || new Date());
+    const totalPreSievedKg = parseFloat(
+      targets.reduce((sum, b) => sum + (b.powdering?.preSievedWeightKg || b.dehydration?.postDryWeightKg || b.totalFinishedKg || 0), 0).toFixed(2)
+    );
+
+    return res.json({
+      canCombine: reasons.length === 0,
+      reasons,
+      newBatchCode,
+      farmerName: enrichedTargets[0]?.farmerName,
+      weekLabel: enrichedTargets[0]?.weekLabel,
+      produce: enrichedTargets[0]?.produce,
+      totalPreSievedKg,
+      parentBatchCodes
+    });
+  } catch (error: any) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+// Combine multiple batches in powdering stage into a single batch
+export const combinePowderingBatches = async (req: Request, res: Response) => {
+  try {
+    const { batchIds, userName, notes } = req.body;
+    if (!Array.isArray(batchIds) || batchIds.length < 2) {
+      return res.status(400).json({ error: 'Please select at least 2 batches to combine.' });
+    }
+
+    // Lookup batches
+    const targets = memoryStore.batches.filter(b => batchIds.includes(b._id) || batchIds.includes(b.batchCode));
+    if (targets.length < 2) {
+      return res.status(400).json({ error: `Found only ${targets.length} valid batches. At least 2 batches required.` });
+    }
+
+    // Enrich each target with farmer and week info
+    const enrichedTargets = targets.map(b => enrichBatchWithFarmerAndWeek(b));
+
+    // Rule 1: Same Produce Type
+    const produceTypes = Array.from(new Set(enrichedTargets.map(b => (b.produce || '').trim().toLowerCase())));
+    if (produceTypes.length > 1) {
+      const typeNames = Array.from(new Set(enrichedTargets.map(b => b.produce)));
+      return res.status(400).json({
+        error: `Batches must be of the same produce type to combine. Found mismatched types: ${typeNames.join(', ')}.`
+      });
+    }
+    const commonProduce = enrichedTargets[0].produce;
+
+    // Rule 2: Same Farmer
+    const farmerKeys = Array.from(new Set(enrichedTargets.map(b => (b.farmerId || b.farmerName || '').trim().toLowerCase())));
+    if (farmerKeys.length > 1) {
+      const farmerNames = Array.from(new Set(enrichedTargets.map(b => b.farmerName)));
+      return res.status(400).json({
+        error: `Batches must be from the same farmer to combine. Found different farmers: ${farmerNames.join(', ')}.`
+      });
+    }
+    const commonFarmerId = enrichedTargets[0].farmerId;
+    const commonFarmerName = enrichedTargets[0].farmerName;
+
+    // Rule 3: Same Week
+    const weekKeys = Array.from(new Set(enrichedTargets.map(b => `${b.weekYear}-W${b.weekNumber}`)));
+    if (weekKeys.length > 1) {
+      const weekLabels = Array.from(new Set(enrichedTargets.map(b => b.weekLabel || `Week ${b.weekNumber}`)));
+      return res.status(400).json({
+        error: `Batches must be from the same week to combine. Found different weeks: ${weekLabels.join(', ')}.`
+      });
+    }
+
+    // Rule 4: Must be in powdering pool / not completed
+    const invalidStages = targets.filter(b => b.powdering?.isPowdered || b.currentStage === 'completed' || b.currentStage === 'dispatch');
+    if (invalidStages.length > 0) {
+      return res.status(400).json({
+        error: `One or more batches have already completed powdering: ${invalidStages.map(b => b.batchCode).join(', ')}.`
+      });
+    }
+
+    // Generate new batch code: BC-YYYYMMDD-(25/26)
+    const parentBatchCodes = targets.map(b => b.batchCode);
+    const newBatchCode = generateCombinedBatchCode(parentBatchCodes, targets[0].createdAt || new Date());
+
+    // Aggregate weights
+    const totalPreSievedKg = parseFloat(
+      targets.reduce((sum, b) => sum + (b.powdering?.preSievedWeightKg || b.dehydration?.postDryWeightKg || b.totalFinishedKg || 0), 0).toFixed(2)
+    );
+    const totalRawKg = parseFloat(targets.reduce((sum, b) => sum + (b.totalRawKg || 0), 0).toFixed(2));
+    const totalBatchCost = parseFloat(targets.reduce((sum, b) => sum + (b.totalBatchCost || 0), 0).toFixed(2));
+
+    // Merge rmIds
+    const allRmIds = Array.from(new Set(targets.flatMap(b => b.rmIds || [])));
+
+    // Create the new combined batch
+    const combinedBatch: any = {
+      _id: `btc_${Date.now()}`,
+      batchCode: newBatchCode,
+      produce: commonProduce,
+      farmerId: commonFarmerId,
+      farmerName: commonFarmerName,
+      receiptWeek: enrichedTargets[0].weekNumber,
+      receiptWeekYear: enrichedTargets[0].weekYear,
+      receiptWeekLabel: enrichedTargets[0].weekLabel,
+      rmIds: allRmIds,
+      currentStage: 'powdering',
+      isCombined: true,
+      parentBatchCodes,
+      parentBatchIds: targets.map(b => b._id),
+      sorting: {
+        rawWeightKg: totalRawKg,
+        sortedWeightKg: totalRawKg,
+        rejectionWeightKg: 0,
+        rejectionRatePercent: 0,
+        notes: `Combined from batches: ${parentBatchCodes.join(', ')}`
+      },
+      dehydration: {
+        dryerId: 'Multi-Batch Dryers',
+        shift: 'Day Shift',
+        tempC: 58,
+        fanSpeed: 'Standard',
+        preProcessSteps: ['Combined dried chips from pool'],
+        preDryWeightKg: totalRawKg,
+        postDryWeightKg: totalPreSievedKg,
+        yieldPercent: totalRawKg > 0 ? parseFloat(((totalPreSievedKg / totalRawKg) * 100).toFixed(2)) : 10,
+        labourCost: 0,
+        utilityCost: 0
+      },
+      powdering: {
+        isPowdered: false,
+        claimedForPowdering: true,
+        preSievedWeightKg: totalPreSievedKg,
+        powderedWeightKg: 0,
+        meshSize: '80 Mesh Standard',
+        lossWeightKg: 0,
+        sievingStartedAt: new Date(),
+        operator: userName || 'Praveen Kumar (Milling Tech)',
+        notes: `Combined from ${parentBatchCodes.join(', ')}. ${notes || ''}`.trim()
+      },
+      packing: {
+        outputId: '',
+        skuName: '',
+        packWeightGm: 100,
+        channel: 'B2C (Retail/D2C)',
+        totalPacksProduced: 0,
+        totalFinishedKg: 0,
+        packagingCost: 0,
+        lotNumber: `LOT-${newBatchCode.replace(/[^0-9]/g, '').slice(-4)}`,
+        bestBefore: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+      },
+      dispatch: {
+        destination: '',
+        qualitySignOff: false,
+        status: 'pending_qc',
+        dispatchedPacks: 0
+      },
+      totalRawKg,
+      totalFinishedKg: totalPreSievedKg,
+      remainingKg: totalPreSievedKg,
+      totalBatchCost,
+      status: 'active',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    // Mark parent batches as combined
+    targets.forEach(b => {
+      b.status = 'completed';
+      b.currentStage = 'completed';
+      (b as any).isCombinedInto = newBatchCode;
+      (b as any).combinedAt = new Date();
+      if (!b.powdering) {
+        b.powdering = {} as any;
+      }
+      b.powdering.notes = `Combined into batch ${newBatchCode}. Source pre-sieved: ${b.powdering.preSievedWeightKg || b.dehydration?.postDryWeightKg || b.totalFinishedKg || 0}kg`;
+    });
+
+    // Add new batch to memory store
+    memoryStore.batches.unshift(combinedBatch);
+
+    // Save to store and database
+    saveStore();
+
+    // Log activity
+    memoryStore.activityLogs.unshift({
+      _id: `log_${Date.now()}`,
+      module: 'Production',
+      action: 'batches_combined',
+      title: 'Batches Combined in Powdering',
+      description: `Combined ${parentBatchCodes.join(' and ')} into single batch ${newBatchCode} (Farmer: ${commonFarmerName}, Week: ${enrichedTargets[0].weekLabel}, Total Dry Mass: ${totalPreSievedKg} kg).`,
+      entityId: newBatchCode,
+      userName: userName || 'Production Staff',
+      timestamp: new Date()
+    });
+
+    return res.status(201).json({
+      success: true,
+      batch: combinedBatch,
+      newBatchCode,
+      parentBatchCodes,
+      message: `Successfully combined ${parentBatchCodes.length} batches into single batch ${newBatchCode}`
+    });
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
   }

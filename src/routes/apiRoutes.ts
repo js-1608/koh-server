@@ -27,6 +27,8 @@ import {
   claimPowderingBatches,
   updatePowderingBatch,
   finalizePowderingBatches,
+  combinePowderingBatches,
+  validateCombineBatches,
   getPackages,
   createPackage,
   getProductTrace
@@ -260,6 +262,8 @@ router.get('/production/factory-analysis', getFactoryAnalysis);
 router.post('/production/powdering/claim', claimPowderingBatches);
 router.patch('/production/powdering/:id', updatePowderingBatch);
 router.post('/production/powdering/finalize', finalizePowderingBatches);
+router.post('/production/powdering/validate-combine', validateCombineBatches);
+router.post('/production/powdering/combine', combinePowderingBatches);
 
 // Packing Stage Multi-Batch Mixing & Output Management
 router.get('/production/packages', getPackages);

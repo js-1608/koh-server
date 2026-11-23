@@ -73,6 +73,16 @@ export interface IDispatchStage {
 export interface IProductionBatch extends Document {
   batchCode: string; // e.g. BC-20260918-01
   produce: string;
+  farmerId?: string;
+  farmerName?: string;
+  receiptWeek?: number;
+  receiptWeekYear?: number;
+  receiptWeekLabel?: string;
+  isCombined?: boolean;
+  parentBatchCodes?: string[];
+  parentBatchIds?: string[];
+  isCombinedInto?: string;
+  combinedAt?: Date;
   rmIds: string[];
   currentStage: 'receiving' | 'sorting' | 'dehydration' | 'powdering' | 'packing' | 'dispatch' | 'completed';
   sorting: ISortingStage;
@@ -92,6 +102,16 @@ export interface IProductionBatch extends Document {
 const ProductionBatchSchema = new Schema<IProductionBatch>({
   batchCode: { type: String, required: true, unique: true },
   produce: { type: String, required: true },
+  farmerId: { type: String },
+  farmerName: { type: String },
+  receiptWeek: { type: Number },
+  receiptWeekYear: { type: Number },
+  receiptWeekLabel: { type: String },
+  isCombined: { type: Boolean, default: false },
+  parentBatchCodes: [{ type: String }],
+  parentBatchIds: [{ type: String }],
+  isCombinedInto: { type: String },
+  combinedAt: { type: Date },
   rmIds: [{ type: String }],
   currentStage: {
     type: String,
