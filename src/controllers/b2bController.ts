@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { memoryStore, IStoreB2BLead, IStoreB2BOrder } from '../services/storeService';
+import { memoryStore, IStoreB2BLead, IStoreB2BOrder, saveStore } from '../services/storeService';
 
 // GET /api/b2b/leads
 export const getB2BLeads = async (req: Request, res: Response) => {
@@ -64,6 +64,7 @@ export const createB2BLead = async (req: Request, res: Response) => {
     };
 
     memoryStore.b2bLeads.unshift(newLead);
+    saveStore();
     res.status(201).json({ success: true, data: newLead });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });
@@ -80,6 +81,7 @@ export const updateB2BLead = async (req: Request, res: Response) => {
     }
 
     Object.assign(lead, req.body, { updatedAt: new Date() });
+    saveStore();
     res.json({ success: true, data: lead });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });
@@ -136,6 +138,7 @@ export const createB2BOrder = async (req: Request, res: Response) => {
     };
 
     memoryStore.b2bOrders.unshift(newOrder);
+    saveStore();
     res.status(201).json({ success: true, data: newOrder });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });
@@ -152,6 +155,7 @@ export const updateB2BOrder = async (req: Request, res: Response) => {
     }
 
     Object.assign(order, req.body);
+    saveStore();
     res.json({ success: true, data: order });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });

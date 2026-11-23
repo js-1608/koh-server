@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { memoryStore, IStoreExpense } from '../services/storeService';
+import { memoryStore, IStoreExpense, saveStore } from '../services/storeService';
 
 // GET /api/expenses
 export const getExpenses = async (req: Request, res: Response) => {
@@ -61,6 +61,7 @@ export const createExpense = async (req: Request, res: Response) => {
     };
 
     memoryStore.expenses.unshift(newExpense);
+    saveStore();
     res.status(201).json({ success: true, data: newExpense });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });
@@ -81,6 +82,7 @@ export const updateExpense = async (req: Request, res: Response) => {
     if (status) expense.status = status;
     if (reimbursementStatus) expense.reimbursementStatus = reimbursementStatus;
 
+    saveStore();
     res.json({ success: true, data: expense });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });
@@ -97,6 +99,7 @@ export const deleteExpense = async (req: Request, res: Response) => {
     }
 
     memoryStore.expenses.splice(idx, 1);
+    saveStore();
     res.json({ success: true, message: 'Expense claim removed' });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });

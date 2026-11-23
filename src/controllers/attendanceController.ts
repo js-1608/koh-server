@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { memoryStore, IStoreWorker, IStoreAttendance } from '../services/storeService';
+import { memoryStore, IStoreWorker, IStoreAttendance, saveStore } from '../services/storeService';
 
 // GET all active factory workers
 export const getWorkers = async (req: Request, res: Response) => {
@@ -54,6 +54,7 @@ export const createWorker = async (req: Request, res: Response) => {
       timestamp: new Date()
     });
 
+    saveStore();
     return res.status(201).json(newWorker);
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -81,6 +82,7 @@ export const deleteWorker = async (req: Request, res: Response) => {
     }
 
     const removed = memoryStore.workers.splice(idx, 1)[0];
+    saveStore();
     return res.json({ success: true, message: `Worker ${removed.name} removed.` });
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -156,6 +158,7 @@ export const checkInWorker = async (req: Request, res: Response) => {
     };
 
     memoryStore.attendanceLogs.push(newLog);
+    saveStore();
 
     return res.status(201).json(newLog);
   } catch (error: any) {
@@ -188,6 +191,7 @@ export const checkOutWorker = async (req: Request, res: Response) => {
     log.hoursWorked = Math.max(0.5, Number((diffMs / 3600000).toFixed(1)));
     log.updatedAt = now;
 
+    saveStore();
     return res.json(log);
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -244,6 +248,7 @@ export const bulkCheckInWorkers = async (req: Request, res: Response) => {
       checkedInLogs.push(newLog);
     }
 
+    saveStore();
     return res.json({
       success: true,
       message: `Successfully checked in ${checkedInLogs.length} worker(s).`,
@@ -292,6 +297,7 @@ export const bulkCheckOutWorkers = async (req: Request, res: Response) => {
       checkedOutLogs.push(log);
     }
 
+    saveStore();
     return res.json({
       success: true,
       message: `Successfully checked out ${checkedOutLogs.length} worker(s).`,

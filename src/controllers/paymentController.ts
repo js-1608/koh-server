@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { memoryStore, IStorePayment } from '../services/storeService';
+import { memoryStore, IStorePayment, saveStore } from '../services/storeService';
 
 // GET /api/payments
 export const getPayments = async (req: Request, res: Response) => {
@@ -59,6 +59,7 @@ export const createPayment = async (req: Request, res: Response) => {
     };
 
     memoryStore.payments.unshift(newPayment);
+    saveStore();
     res.status(201).json({ success: true, data: newPayment });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });
@@ -91,6 +92,7 @@ export const payPayment = async (req: Request, res: Response) => {
       if (po) po.status = 'Received';
     }
 
+    saveStore();
     res.json({ success: true, data: payment, message: 'Payment marked as settled' });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });

@@ -364,7 +364,11 @@ export const updateBatchStage = async (req: Request, res: Response) => {
         const linkedPkg = memoryStore.packages.find(p => p.outputId === batch.packing?.outputId);
         if (linkedPkg) {
           linkedPkg.channel = chosenChannel;
-          linkedPkg.dispatch.destination = chosenDestination;
+          if (!linkedPkg.dispatch) {
+            linkedPkg.dispatch = { destination: chosenDestination, status: 'delivered' };
+          } else {
+            linkedPkg.dispatch.destination = chosenDestination;
+          }
           if (stageData.vehicleNo) linkedPkg.dispatch.vehicleNo = stageData.vehicleNo;
           if (stageData.qcInspector) linkedPkg.dispatch.qcInspector = stageData.qcInspector;
           linkedPkg.dispatch.status = 'delivered';

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { uploadMedia } from '../middleware/uploadMiddleware';
 import { login, getMe, getAllUsers, createUser, updateUser, deleteUser } from '../controllers/authController';
 import {
   getProductionStats,
@@ -88,6 +89,10 @@ import {
   updateCalendarPost,
   deleteCalendarPost,
   publishCalendarPost,
+  getSocialConnections,
+  uploadMediaFiles,
+  getUploadedMediaList,
+  deleteUploadedMedia,
   getShoots,
   createShoot,
   updateShoot,
@@ -98,13 +103,20 @@ import {
   deleteShootClip,
   linkClipToContent,
   getInfluencers,
+  fetchInfluencerProfile,
   createInfluencer,
   updateInfluencer,
   deleteInfluencer,
   getCollabPipeline,
   createCollab,
   updateCollab,
+  updateCollabPayment,
+  addCollabPaymentInstallment,
+  deleteCollabPaymentInstallment,
+  updateCollabMetrics,
   deleteCollab,
+  fetchPostStats,
+  refreshCollabStats,
   getInfluencerPayments,
   generateInfluencerScripts,
   generateAiCalendar,
@@ -114,6 +126,9 @@ import {
   getAdCreatives,
   createAdCreative,
   updateAdCreative,
+  deleteAdCreative,
+  launchAdCreative,
+  getAdConnections,
   getPaidAds,
   createPaidAd,
   updatePaidAd,
@@ -122,7 +137,15 @@ import {
   syncOrganicAnalytics,
   getOrganicLeaderboards,
   getOrganicBestTimes,
-  getAdAnalyticsSummary
+  updateOrganicCustomStats,
+  getOrganicConnectionStatus,
+  getAdAnalyticsSummary,
+  syncPaidAdsController,
+  getShopifyStatus,
+  testShopifyConnectionHandler,
+  syncCollabShopifySales,
+  syncAllCollabsShopifySales,
+  getCollabShopifyOrders
 } from '../controllers/marketingController';
 import {
   getPayments,
@@ -155,7 +178,19 @@ import {
   updateNpdStage,
   promoteNpdToSku
 } from '../controllers/npdController';
-import { getPlanningScenarios } from '../controllers/planningController';
+import {
+  getPlanningScenario,
+  savePlanningScenario,
+  getDemandPlans,
+  saveDemandPlan,
+  deleteDemandPlan,
+  acceptDemandPlan,
+  rejectDemandPlan,
+  getAIMixRecommendation,
+  pushProductionPlan,
+  pushCultivationPlan,
+  getPlanningScenarios
+} from '../controllers/planningController';
 import {
   getPnlEntries,
   getPnlByMonth,
@@ -178,6 +213,7 @@ import {
   getMonthlyWages,
   getWorkerAttendanceLogs
 } from '../controllers/attendanceController';
+import { getDatabaseStats, persistAllToDb } from '../services/dbService';
 
 const router = Router();
 
@@ -307,10 +343,16 @@ router.delete('/inventory/purchase-orders/:id', deletePurchaseOrder);
 router.get('/catalog/skus', getSkus);
 router.post('/catalog/skus', createSku);
 router.patch('/catalog/skus/:id', updateSku);
+router.get('/skus', getSkus);
+router.post('/skus', createSku);
+router.patch('/skus/:id', updateSku);
 router.get('/catalog/compliance', getComplianceTests);
 router.post('/catalog/compliance', createComplianceTest);
 
-// Marketing Module - Content & Calendar Scheduling (LinkedIn & Meta)
+// Marketing Module - Content & Calendar Scheduling (LinkedIn, Meta, YouTube)
+router.get('/marketing/calendar/connections', getSocialConnections);
+router.post('/marketing/calendar/upload', uploadMedia.array('files', 10), uploadMediaFiles);
+router.post('/upload', uploadMedia.array('files', 10), uploadMediaFiles);
 router.get('/marketing/calendar', getCalendarPosts);
 router.post('/marketing/calendar/schedule', scheduleCalendarPost);
 router.patch('/marketing/calendar/:id', updateCalendarPost);
@@ -327,6 +369,10 @@ router.post('/marketing/shoots/sessions', createShoot);
 router.patch('/marketing/shoots/sessions/:id', updateShoot);
 router.delete('/marketing/shoots/sessions/:id', deleteShoot);
 
+router.get('/marketing/uploads', getUploadedMediaList);
+router.delete('/marketing/uploads/:filename', deleteUploadedMedia);
+router.post('/marketing/shoots/upload', uploadMedia.array('files', 10), uploadMediaFiles);
+
 router.get('/marketing/shoots', getShootClips); // Footage library
 router.post('/marketing/shoots', createShootClip);
 router.get('/marketing/shoots/library', getShootClips);
@@ -341,19 +387,35 @@ router.get('/marketing/organic-analytics/posts', getOrganicPosts);
 router.post('/marketing/organic-analytics/sync', syncOrganicAnalytics);
 router.get('/marketing/organic-analytics/leaderboards', getOrganicLeaderboards);
 router.get('/marketing/organic-analytics/best-times', getOrganicBestTimes);
+router.post('/marketing/organic-analytics/custom-stats', updateOrganicCustomStats);
+router.get('/marketing/organic-analytics/connections', getOrganicConnectionStatus);
 
 // Influencers & Collab Pipeline
 router.get('/marketing/influencers', getInfluencers);
 router.post('/marketing/influencers', createInfluencer);
+router.post('/marketing/influencers/fetch-profile', fetchInfluencerProfile);
 router.patch('/marketing/influencers/:id', updateInfluencer);
 router.delete('/marketing/influencers/:id', deleteInfluencer);
 
 router.get('/marketing/influencers/collabs', getCollabPipeline);
 router.post('/marketing/influencers/collabs', createCollab);
 router.patch('/marketing/influencers/collabs/:id', updateCollab);
+router.post('/marketing/influencers/collabs/:id/payment', updateCollabPayment);
+router.post('/marketing/influencers/collabs/:id/payments', addCollabPaymentInstallment);
+router.delete('/marketing/influencers/collabs/:id/payments/:installmentId', deleteCollabPaymentInstallment);
+router.post('/marketing/influencers/collabs/:id/metrics', updateCollabMetrics);
+router.post('/marketing/influencers/collabs/:id/refresh-stats', refreshCollabStats);
+router.post('/marketing/influencers/fetch-post-stats', fetchPostStats);
 router.delete('/marketing/influencers/collabs/:id', deleteCollab);
 router.get('/marketing/influencers/payments', getInfluencerPayments);
 router.post('/marketing/influencers/generate-scripts', generateInfluencerScripts);
+
+// Shopify Coupon Sales & Collab ROI Integration
+router.get('/marketing/shopify/status', getShopifyStatus);
+router.get('/marketing/shopify/test-connection', testShopifyConnectionHandler);
+router.post('/marketing/shopify/sync-collab/:id', syncCollabShopifySales);
+router.post('/marketing/shopify/sync-all', syncAllCollabsShopifySales);
+router.get('/marketing/shopify/orders/:id', getCollabShopifyOrders);
 
 router.post('/marketing/ai-calendar', generateAiCalendar);
 
@@ -361,11 +423,15 @@ router.post('/marketing/ai-calendar', generateAiCalendar);
 router.get('/marketing/statics', getStatics);
 router.post('/marketing/statics', createStatic);
 router.patch('/marketing/statics/:id', updateStatic);
+router.get('/marketing/ad-connections', getAdConnections);
 router.get('/marketing/ad-creatives', getAdCreatives);
 router.post('/marketing/ad-creatives', createAdCreative);
 router.patch('/marketing/ad-creatives/:id', updateAdCreative);
+router.delete('/marketing/ad-creatives/:id', deleteAdCreative);
+router.post('/marketing/ad-creatives/:id/launch', launchAdCreative);
 router.get('/marketing/paid-ads', getPaidAds);
 router.post('/marketing/paid-ads', createPaidAd);
+router.post('/marketing/paid-ads/sync', syncPaidAdsController);
 router.patch('/marketing/paid-ads/:id', updatePaidAd);
 router.get('/marketing/ad-analytics', getAdAnalyticsSummary);
 
@@ -401,11 +467,53 @@ router.patch('/npd/products/:id/stage', updateNpdStage);
 router.post('/npd/products/:id/promote-sku', promoteNpdToSku);
 
 // Planning Module
-router.get('/planning/scenario', getPlanningScenarios);
+router.get('/planning/scenario', getPlanningScenario);
+router.post('/planning/scenario', savePlanningScenario);
+router.get('/planning/plans', getDemandPlans);
+router.post('/planning/plans', saveDemandPlan);
+router.delete('/planning/plans/:id', deleteDemandPlan);
+router.post('/planning/plans/:id/accept', acceptDemandPlan);
+router.post('/planning/plans/:id/reject', rejectDemandPlan);
+router.post('/planning/ai-mix', getAIMixRecommendation);
+router.post('/planning/push-production', pushProductionPlan);
+router.post('/planning/push-cultivation', pushCultivationPlan);
 
 // Finance / P&L Module
 router.get('/finance/pnl', getPnlEntries);
 router.get('/finance/pnl/:month', getPnlByMonth);
 router.post('/finance/pnl/:month', updatePnlEntry);
+
+// System & Database Administration
+router.get('/system/db-status', async (req, res) => {
+  try {
+    const stats = await getDatabaseStats();
+    return res.json(stats);
+  } catch (error: any) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/system/db-sync', async (req, res) => {
+  try {
+    await persistAllToDb();
+    const stats = await getDatabaseStats();
+    return res.json({ success: true, message: 'All collections successfully persisted to MongoDB', stats });
+  } catch (error: any) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/system/set-mode', async (req, res) => {
+  try {
+    const { mode } = req.body;
+    if (mode === 'development' || mode === 'production') {
+      process.env.NODE_ENV = mode;
+      return res.json({ success: true, mode: process.env.NODE_ENV });
+    }
+    return res.status(400).json({ error: "Mode must be 'development' or 'production'" });
+  } catch (error: any) {
+    return res.status(500).json({ error: error.message });
+  }
+});
 
 export default router;

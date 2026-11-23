@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { memoryStore } from '../services/storeService';
+import { memoryStore, saveStore } from '../services/storeService';
 
 export const getSkus = async (req: Request, res: Response) => {
   try {
@@ -44,6 +44,7 @@ export const createSku = async (req: Request, res: Response) => {
     };
 
     memoryStore.skus.unshift(newSku);
+    saveStore();
     return res.status(201).json(newSku);
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -69,6 +70,7 @@ export const updateSku = async (req: Request, res: Response) => {
     sku.grossMarginPercent = sp > 0 ? parseFloat((((sp - sku.cogs) / sp) * 100).toFixed(2)) : 0;
 
     memoryStore.skus[index] = sku;
+    saveStore();
     return res.json(sku);
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -104,6 +106,7 @@ export const createComplianceTest = async (req: Request, res: Response) => {
     };
 
     memoryStore.complianceTests.unshift(newTest);
+    saveStore();
     return res.status(201).json(newTest);
   } catch (error: any) {
     return res.status(500).json({ error: error.message });

@@ -20,6 +20,8 @@ yarn-error.log*
 # Backups and temp files
 *.backup.json
 *.tmp
+local_store*.json
+data/*.json
 
 # OS files
 .DS_Store

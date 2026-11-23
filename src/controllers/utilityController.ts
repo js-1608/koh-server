@@ -3,7 +3,8 @@ import {
   memoryStore,
   IStoreUtilityStock,
   IStoreVendor,
-  IStorePurchaseOrder
+  IStorePurchaseOrder,
+  saveStore
 } from '../services/storeService';
 
 // ==========================================
@@ -54,6 +55,7 @@ export const createUtilityStock = async (req: Request, res: Response) => {
 
     if (!memoryStore.utilityStock) memoryStore.utilityStock = [];
     memoryStore.utilityStock.push(newItem);
+    saveStore();
 
     return res.status(201).json(newItem);
   } catch (error: any) {
@@ -94,6 +96,7 @@ export const updateUtilityStock = async (req: Request, res: Response) => {
     if (notes !== undefined) item.notes = notes;
     item.updatedAt = new Date();
 
+    saveStore();
     return res.json(item);
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -142,6 +145,7 @@ export const adjustStock = async (req: Request, res: Response) => {
       timestamp: new Date()
     });
 
+    saveStore();
     return res.json({
       success: true,
       message: `Stock updated to ${item.currentStock} ${item.unit}`,
@@ -160,6 +164,7 @@ export const deleteUtilityStock = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Stock item not found' });
     }
     const removed = memoryStore.utilityStock.splice(idx, 1)[0];
+    saveStore();
     return res.json({ success: true, message: `Item ${removed.name} removed from stock.` });
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -225,6 +230,7 @@ export const createVendor = async (req: Request, res: Response) => {
 
     if (!memoryStore.vendors) memoryStore.vendors = [];
     memoryStore.vendors.push(newVendor);
+    saveStore();
 
     return res.status(201).json(newVendor);
   } catch (error: any) {
@@ -273,6 +279,7 @@ export const updateVendor = async (req: Request, res: Response) => {
     if (status !== undefined) vendor.status = status;
     vendor.updatedAt = new Date();
 
+    saveStore();
     return res.json(vendor);
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -287,6 +294,7 @@ export const deleteVendor = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Vendor not found' });
     }
     const removed = memoryStore.vendors.splice(idx, 1)[0];
+    saveStore();
     return res.json({ success: true, message: `Vendor ${removed.name} removed.` });
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -360,6 +368,7 @@ export const createPurchaseOrder = async (req: Request, res: Response) => {
       newPO.receivedAt = new Date();
     }
 
+    saveStore();
     return res.status(201).json(newPO);
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -414,6 +423,7 @@ export const updatePurchaseOrder = async (req: Request, res: Response) => {
       }
     }
 
+    saveStore();
     return res.json(po);
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -428,6 +438,7 @@ export const deletePurchaseOrder = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Purchase order not found' });
     }
     const removed = memoryStore.purchaseOrders.splice(idx, 1)[0];
+    saveStore();
     return res.json({ success: true, message: `PO ${removed.poNumber} removed.` });
   } catch (error: any) {
     return res.status(500).json({ error: error.message });

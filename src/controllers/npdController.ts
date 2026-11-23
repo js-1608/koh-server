@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { memoryStore } from '../services/storeService';
+import { memoryStore, saveStore } from '../services/storeService';
 
 export const getNpdProducts = async (req: Request, res: Response) => {
   try {
@@ -53,6 +53,7 @@ export const createNpdProduct = async (req: Request, res: Response) => {
     };
 
     memoryStore.npdProducts.unshift(newNpd);
+    saveStore();
     return res.status(201).json(newNpd);
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -79,6 +80,7 @@ export const updateNpdStage = async (req: Request, res: Response) => {
     item.updatedAt = new Date();
 
     memoryStore.npdProducts[index] = item;
+    saveStore();
     return res.json(item);
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -119,6 +121,7 @@ export const promoteNpdToSku = async (req: Request, res: Response) => {
     npd.createdSkuCode = skuCode;
     npd.stage = 'Compliance & Launch';
 
+    saveStore();
     return res.json({ success: true, sku: newSku, npd });
   } catch (error: any) {
     return res.status(500).json({ error: error.message });

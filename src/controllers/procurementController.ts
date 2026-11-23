@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { memoryStore } from '../services/storeService';
+import { memoryStore, saveStore } from '../services/storeService';
 
 export const getFarmers = async (req: Request, res: Response) => {
   try {
@@ -63,6 +63,7 @@ export const createFarmer = async (req: Request, res: Response) => {
 
     if (!memoryStore.farmers) memoryStore.farmers = [];
     memoryStore.farmers.unshift(newFarmer);
+    saveStore();
     return res.status(201).json(newFarmer);
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -106,6 +107,7 @@ export const updateFarmer = async (req: Request, res: Response) => {
     if (notes !== undefined) farmer.notes = notes;
     farmer.updatedAt = new Date();
 
+    saveStore();
     return res.json(farmer);
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -120,6 +122,7 @@ export const deleteFarmer = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Farmer not found' });
     }
     const removed = memoryStore.farmers.splice(idx, 1)[0];
+    saveStore();
     return res.json({ success: true, message: `Farmer ${removed.name} removed.` });
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -166,6 +169,7 @@ export const createCropMaster = async (req: Request, res: Response) => {
     };
 
     memoryStore.cropMasters.push(newCrop);
+    saveStore();
     return res.status(201).json(newCrop);
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -204,6 +208,7 @@ export const updateCropMaster = async (req: Request, res: Response) => {
     }
     if (marketRatePerKg !== undefined) crop.marketRatePerKg = Number(marketRatePerKg);
 
+    saveStore();
     return res.json(crop);
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -252,6 +257,7 @@ export const createCropCycle = async (req: Request, res: Response) => {
     };
 
     memoryStore.cropCycles.unshift(newCycle);
+    saveStore();
     return res.status(201).json(newCycle);
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -273,6 +279,7 @@ export const updateCropCycle = async (req: Request, res: Response) => {
     if (actualYieldKg !== undefined) cycle.actualYieldKg = Number(actualYieldKg);
     if (notes !== undefined) cycle.notes = notes;
 
+    saveStore();
     return res.json(cycle);
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -299,6 +306,7 @@ export const addCyclePurchase = async (req: Request, res: Response) => {
     cycle.farmPurchases.push(purchase);
     cycle.totalCultivationCost += purchase.amount;
 
+    saveStore();
     return res.json(cycle);
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -334,6 +342,7 @@ export const createFarmPartner = async (req: Request, res: Response) => {
 
     if (!memoryStore.farmPartners) memoryStore.farmPartners = [];
     memoryStore.farmPartners.unshift(newPartner);
+    saveStore();
     return res.status(201).json(newPartner);
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -354,6 +363,7 @@ export const updateFarmPartner = async (req: Request, res: Response) => {
     if (notes !== undefined) partner.notes = notes;
     partner.updatedAt = new Date();
 
+    saveStore();
     return res.json(partner);
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -366,6 +376,7 @@ export const deleteFarmPartner = async (req: Request, res: Response) => {
     const idx = (memoryStore.farmPartners || []).findIndex(p => p._id === id);
     if (idx === -1) return res.status(404).json({ error: 'Partner not found' });
     const removed = memoryStore.farmPartners.splice(idx, 1)[0];
+    saveStore();
     return res.json({ success: true, message: `Partner ${removed.name} removed.` });
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -403,6 +414,7 @@ export const createFarmerPlot = async (req: Request, res: Response) => {
 
     if (!memoryStore.farmerPlots) memoryStore.farmerPlots = [];
     memoryStore.farmerPlots.push(newPlot);
+    saveStore();
     return res.status(201).json(newPlot);
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -415,6 +427,7 @@ export const deleteFarmerPlot = async (req: Request, res: Response) => {
     const idx = (memoryStore.farmerPlots || []).findIndex(p => p._id === id);
     if (idx === -1) return res.status(404).json({ error: 'Plot not found' });
     memoryStore.farmerPlots.splice(idx, 1);
+    saveStore();
     return res.json({ success: true });
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -452,6 +465,7 @@ export const createSoilWaterTest = async (req: Request, res: Response) => {
 
     if (!memoryStore.soilWaterTests) memoryStore.soilWaterTests = [];
     memoryStore.soilWaterTests.unshift(newTest);
+    saveStore();
     return res.status(201).json(newTest);
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -464,6 +478,7 @@ export const deleteSoilWaterTest = async (req: Request, res: Response) => {
     const idx = (memoryStore.soilWaterTests || []).findIndex(t => t._id === id);
     if (idx === -1) return res.status(404).json({ error: 'Test not found' });
     memoryStore.soilWaterTests.splice(idx, 1);
+    saveStore();
     return res.json({ success: true });
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -534,6 +549,7 @@ export const createFarmActivity = async (req: Request, res: Response) => {
 
     if (!memoryStore.farmActivities) memoryStore.farmActivities = [];
     memoryStore.farmActivities.unshift(newActivity);
+    saveStore();
     return res.status(201).json(newActivity);
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -546,6 +562,7 @@ export const deleteFarmActivity = async (req: Request, res: Response) => {
     const idx = (memoryStore.farmActivities || []).findIndex(a => a._id === id);
     if (idx === -1) return res.status(404).json({ error: 'Activity not found' });
     memoryStore.farmActivities.splice(idx, 1);
+    saveStore();
     return res.json({ success: true });
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -579,6 +596,7 @@ export const createCropDiagnosis = async (req: Request, res: Response) => {
 
     if (!memoryStore.cropDiagnoses) memoryStore.cropDiagnoses = [];
     memoryStore.cropDiagnoses.unshift(newDiag);
+    saveStore();
     return res.status(201).json(newDiag);
   } catch (error: any) {
     return res.status(500).json({ error: error.message });

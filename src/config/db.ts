@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import { initDatabaseSync } from '../services/dbService';
 
 dotenv.config();
 
@@ -14,12 +15,16 @@ export const connectDB = async () => {
 
   try {
     const conn = await mongoose.connect(MONGODB_URI, {
-      serverSelectionTimeoutMS: 2000,
+      serverSelectionTimeoutMS: 5000,
     });
     isConnected = true;
     console.log(`[MongoDB] Connected successfully to ${conn.connection.host}/${conn.connection.name}`);
+
+    // Trigger full synchronization between database and application
+    await initDatabaseSync();
   } catch (error: any) {
     console.warn(`[MongoDB] Notice: Could not connect to MongoDB at ${MONGODB_URI}. (${error.message})`);
-    console.log(`[Data Store] Using resilient high-speed in-memory store with auto-seeding.`);
+    console.log(`[Data Store] Using resilient fallback store.`);
   }
 };
+

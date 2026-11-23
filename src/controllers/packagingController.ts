@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { memoryStore, IStorePackaging } from '../services/storeService';
+import { memoryStore, IStorePackaging, saveStore } from '../services/storeService';
 
 // GET /api/packaging
 export const getPackaging = async (req: Request, res: Response) => {
@@ -60,6 +60,7 @@ export const createPackaging = async (req: Request, res: Response) => {
     };
 
     memoryStore.packaging.unshift(newPkg);
+    saveStore();
     res.status(201).json({ success: true, data: newPkg });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });
@@ -76,6 +77,7 @@ export const updatePackaging = async (req: Request, res: Response) => {
     }
 
     Object.assign(pkg, req.body, { updatedAt: new Date() });
+    saveStore();
     res.json({ success: true, data: pkg });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });
@@ -92,6 +94,7 @@ export const deletePackaging = async (req: Request, res: Response) => {
     }
 
     memoryStore.packaging.splice(idx, 1);
+    saveStore();
     res.json({ success: true, message: 'Packaging label removed' });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });

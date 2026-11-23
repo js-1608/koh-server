@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { memoryStore } from '../services/storeService';
+import { memoryStore, saveStore } from '../services/storeService';
 
 export const getPnlEntries = async (req: Request, res: Response) => {
   try {
@@ -103,6 +103,7 @@ export const updatePnlEntry = async (req: Request, res: Response) => {
     if (notes) entry.notes = notes;
 
     memoryStore.pnlEntries[index] = entry;
+    saveStore();
     return res.json(entry);
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
