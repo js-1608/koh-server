@@ -1,3 +1,4 @@
+import webhookRoutes from './webhookRoutes';
 import { Router } from 'express';
 import { uploadMedia } from '../middleware/uploadMiddleware';
 import { login, getMe, getAllUsers, createUser, updateUser, deleteUser } from '../controllers/authController';
@@ -515,5 +516,8 @@ router.post('/system/set-mode', async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 });
+
+// Webhook and Auto-Deploy
+router.use('/webhook', webhookRoutes);
 
 export default router;
