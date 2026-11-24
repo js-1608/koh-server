@@ -509,6 +509,69 @@ export const updateBatchStage = async (req: Request, res: Response) => {
   }
 };
 
+export const saveBatchCOA = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const coaData = req.body;
+
+    const index = memoryStore.batches.findIndex(b => b._id === id || b.batchCode === id);
+    if (index === -1) {
+      return res.status(404).json({ error: 'Batch not found' });
+    }
+
+    const batch = memoryStore.batches[index];
+    const previousCoa = (batch.coa || {}) as any;
+
+    batch.coa = {
+      material: coaData.material || batch.produce || '',
+      batchCode: coaData.batchCode || batch.batchCode,
+      quantity: coaData.quantity || '',
+      packingDetails: coaData.packingDetails || '',
+      productionDate: coaData.productionDate || '',
+      expiryDate: coaData.expiryDate || '',
+      parameters: Array.isArray(coaData.parameters) ? coaData.parameters : [],
+      preparedByName: coaData.preparedByName || '',
+      preparedByTitle: coaData.preparedByTitle || 'Food Technologist',
+      qaApproverName: coaData.qaApproverName || '',
+      qaSignedAt: coaData.qaApproverName
+        ? (previousCoa.qaApproverName === coaData.qaApproverName && previousCoa.qaSignedAt
+            ? previousCoa.qaSignedAt
+            : new Date().toISOString())
+        : undefined,
+      updatedAt: new Date().toISOString()
+    };
+
+    memoryStore.batches[index] = batch;
+    saveStore('batches');
+
+    // Also update Mongo model if connected
+    try {
+      await ProductionBatch.findOneAndUpdate(
+        { $or: [{ _id: id }, { batchCode: id }] },
+        { $set: { coa: batch.coa, updatedAt: new Date() } }
+      );
+    } catch (e) {
+      // resilient
+    }
+
+    // Log activity
+    memoryStore.activityLogs.unshift({
+      _id: `log_${Date.now()}`,
+      module: 'Production',
+      action: 'coa_saved',
+      title: `COA Saved: ${batch.batchCode}`,
+      description: `Certificate of Analysis updated for batch ${batch.batchCode}. QA Sign-off: ${coaData.qaApproverName || 'Pending'}`,
+      entityId: batch.batchCode,
+      userName: coaData.qaApproverName || coaData.preparedByName || 'QA Inspector',
+      timestamp: new Date()
+    });
+
+    return res.json({ success: true, batch, coa: batch.coa });
+  } catch (error: any) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 export const getInventory = async (req: Request, res: Response) => {
   try {
     const rawProduce = memoryStore.receipts.filter(r => r.status === 'received');

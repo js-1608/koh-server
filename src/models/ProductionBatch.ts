@@ -70,6 +70,28 @@ export interface IDispatchStage {
   notes?: string;
 }
 
+export interface ICOAParameter {
+  sno: number;
+  parameter: string;
+  specification: string;
+  result: string;
+}
+
+export interface ICOA {
+  material: string;
+  batchCode: string;
+  quantity: string;
+  packingDetails: string;
+  productionDate: string;
+  expiryDate: string;
+  parameters: ICOAParameter[];
+  preparedByName?: string;
+  preparedByTitle?: string;
+  qaApproverName?: string;
+  qaSignedAt?: Date | string;
+  updatedAt?: Date | string;
+}
+
 export interface IProductionBatch extends Document {
   batchCode: string; // e.g. BC-20260918-01
   produce: string;
@@ -90,6 +112,7 @@ export interface IProductionBatch extends Document {
   powdering: IPowderingStage;
   packing: IPackingStage;
   dispatch: IDispatchStage;
+  coa?: ICOA;
   totalRawKg: number;
   totalFinishedKg: number;
   remainingKg?: number;
@@ -182,6 +205,25 @@ const ProductionBatchSchema = new Schema<IProductionBatch>({
     dispatchedPacks: { type: Number, default: 0 },
     status: { type: String, enum: ['pending_qc', 'qc_approved', 'dispatched', 'delivered'], default: 'pending_qc' },
     notes: { type: String }
+  },
+  coa: {
+    material: { type: String },
+    batchCode: { type: String },
+    quantity: { type: String },
+    packingDetails: { type: String },
+    productionDate: { type: String },
+    expiryDate: { type: String },
+    parameters: [{
+      sno: { type: Number },
+      parameter: { type: String },
+      specification: { type: String },
+      result: { type: String }
+    }],
+    preparedByName: { type: String },
+    preparedByTitle: { type: String },
+    qaApproverName: { type: String },
+    qaSignedAt: { type: Date },
+    updatedAt: { type: Date }
   },
   totalRawKg: { type: Number, default: 0 },
   totalFinishedKg: { type: Number, default: 0 },

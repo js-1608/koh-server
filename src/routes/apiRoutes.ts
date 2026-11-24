@@ -10,6 +10,7 @@ import {
   getBatches,
   createBatch,
   updateBatchStage,
+  saveBatchCOA,
   getInventory,
   getEquipment,
   createEquipment,
@@ -255,6 +256,8 @@ router.patch('/production/receipts/:id', updateReceipt);
 router.get('/production/batches', getBatches);
 router.post('/production/batches', createBatch);
 router.patch('/production/batches/:id/stage', updateBatchStage);
+router.patch('/production/batches/:id/coa', saveBatchCOA);
+router.post('/production/batches/:id/coa', saveBatchCOA);
 router.get('/production/inventory', getInventory);
 router.get('/production/factory-analysis', getFactoryAnalysis);
 

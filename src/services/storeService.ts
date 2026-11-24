@@ -157,6 +157,25 @@ export interface IStoreBatch {
     dispatched?: boolean;
     notes?: string;
   };
+  coa?: {
+    material: string;
+    batchCode: string;
+    quantity: string;
+    packingDetails: string;
+    productionDate: string;
+    expiryDate: string;
+    parameters: Array<{
+      sno: number;
+      parameter: string;
+      specification: string;
+      result: string;
+    }>;
+    preparedByName?: string;
+    preparedByTitle?: string;
+    qaApproverName?: string;
+    qaSignedAt?: Date | string;
+    updatedAt?: Date | string;
+  };
   totalRawKg: number;
   totalFinishedKg: number;
   remainingKg?: number;
